@@ -1,4 +1,5 @@
 //Yosha Riley
+//PM/0 VM
 #include <stdio.h>
 #include <string.h>
 
@@ -90,8 +91,9 @@ void main(int argc, char** argv) {
         IR.L = pas[PC + 1];
         IR.M = pas[PC + 2];
 
-        //increment PC
+        //store line number to print later
         lineNo = PC / 3;
+        //increment PC
         PC = PC + 3;
 
         //execute cycle
