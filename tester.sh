@@ -1,37 +1,109 @@
 #!/bin/bash
-gcc vm.c
+
+make
 compiled=$?
 if [[ $compiled != 0 ]]; then
-  echo "does not compile"
-  exit 1
+	echo "does not compile"
+	exit 1
 fi
 
-echo -n "Testing test1.txt : "
-./a.out test1.txt <<< '3' > output.txt
+echo "Compiles"
+
+echo -n "Test 1 : "
+./a.out test1.txt > output.txt
 executed=$?
 if [[ $executed !=  0 ]]; then
-  echo "crashed"
-  exit 1
-fi
-diff -w -B output.txt output1.txt &> /dev/null
-correct=$?
-if [[ $correct != 0 ]]; then
-  echo "incorrect output"
+	echo ":'("
+	exit 1
 else
-  echo "pass"
+	diff -w -B output.txt output1.txt &> /dev/null
+	correct=$?
+	if [[ $correct != 0 ]]; then
+		echo ":'("
+		exit 1
+	else
+		echo "───==≡≡ΣΣ((( つºل͜º)つ"
+	fi
 fi
 
-echo -n "Testing test2.txt : "
-./a.out test2.txt <<< '10 7' > output.txt
+
+echo -n "Test 2 : "
+
+./a.out test2.txt > output.txt
 executed=$?
 if [[ $executed !=  0 ]]; then
-  echo "crashed"
-  exit 1
-fi
-diff -w -B output.txt output2.txt &> /dev/null
-correct=$?
-if [[ $correct != 0 ]]; then
-  echo "incorrect output"
+	echo ":'("
 else
-  echo "pass"
+	diff -w -B output.txt output2.txt &> /dev/null
+	correct=$?
+	if [[ $correct != 0 ]]; then
+		echo ":'("
+	else
+		echo "───==≡≡ΣΣ((( つºل͜º)つ"
+	fi
+fi
+
+echo -n "Test 3 : "
+
+./a.out test3.txt > output.txt
+executed=$?
+if [[ $executed !=  0 ]]; then
+	echo ":'("
+else
+	diff -w -B output.txt output3.txt &> /dev/null
+	correct=$?
+	if [[ $correct != 0 ]]; then
+		echo ":'("
+	else
+		echo "───==≡≡ΣΣ((( つºل͜º)つ"
+	fi
+fi
+
+echo -n "Test 4 : "
+
+./a.out test4.txt > output.txt
+executed=$?
+if [[ $executed !=  0 ]]; then
+	echo ":'("
+else
+	diff -w -B output.txt output4.txt &> /dev/null
+	correct=$?
+	if [[ $correct != 0 ]]; then
+		echo ":'("
+	else
+		echo "───==≡≡ΣΣ((( つºل͜º)つ"
+	fi
+fi
+
+
+echo -n "Test 5 : "
+
+./a.out test5.txt > output.txt
+executed=$?
+if [[ $executed !=  0 ]]; then
+	echo ":'("
+else
+	diff -w -B output.txt output5.txt &> /dev/null
+	correct=$?
+	if [[ $correct != 0 ]]; then
+		echo ":'("
+	else
+		echo "───==≡≡ΣΣ((( つºل͜º)つ"
+	fi
+fi
+
+echo -n "Test 6 : "
+
+./a.out test6.txt > output.txt
+executed=$?
+if [[ $executed !=  0 ]]; then
+	echo ":'("
+else
+	diff -w -B output.txt output6.txt &> /dev/null
+	correct=$?
+	if [[ $correct != 0 ]]; then
+		echo ":'("
+	else
+		echo "───==≡≡ΣΣ((( つºل͜º)つ"
+	fi
 fi

@@ -1,20 +1,20 @@
-7 0 45
-7 0 6
-6 0 3
-1 0 4
-1 0 3
-2 0 4
-4 1 0
-1 0 14
-3 1 0
-2 0 10
-8 0 39
-1 0 7
-7 0 42
-1 0 5
-2 0 0
-6 0 1
-9 0 2
-5 0 6
-9 0 1
-9 0 3
+// this program multiplies two numbers given by the user
+const one := 1;
+var x, y, result;
+procedure mult;
+	begin
+	if x > one then	// x number of recursive calls
+		begin
+			x := x - one;
+			call mult;
+		end;
+	result := result + y; // after we make x recursive calls we can start adding y
+	end;
+begin
+	// initialize values
+	read x;
+	read y;
+	result := 0;
+	call mult;
+	write result;
+end.
