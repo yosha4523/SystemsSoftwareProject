@@ -24,13 +24,244 @@ int lex_index;
 
 void printlexerror(int type);
 void printtokens();
-
+int addtoken(char* input);
+int isnum(char* input);
+int isid(char* input);
 
 lexeme *lexanalyzer(char *input)
 {
-	return NULL;
+	char tempString[MAX_IDENT_LEN + 1];
+	int i = 0;
+	lex_index = 0;
+
+	for(i = 0; i < strlen(input); i++)	{
+		if(input[i] != '\0' && lex_index <= 500)	{
+			
+			for(int j = 0;;i++)	{
+
+					if(input[i] == '/' && input[i + 1] == '/')	{
+						while(input[i] != '\n' || input[i] != '\r')	{
+							i++;
+						}
+					}
+
+					if(input[i] == ' ')	{
+						if(strlen(tempString) == 0)
+							continue;
+						tempString[j] = '\0';
+						i++;
+						break;
+					}
+					else if(isdigit(input[i]) && j == 0)	{
+						while(isdigit(input[i]))	{
+							if(j <= MAX_NUMBER_LEN){
+								tempString[j] = input[i];
+								i++;
+								j++;
+							}
+							else	{
+								printlexerror(3);
+							}
+						}
+						if(isalpha(input[i]))	{
+							printlexerror(2);
+						}
+						tempString[j] = '\0';
+						break;
+					}
+					else if(isalpha(input[i]) && j== 0)	{
+						while(isalnum(input[i]))	{
+							if(j <= MAX_IDENT_LEN)	{
+								tempString[j] = input[i];
+								i++;
+								j++;
+							}
+							else	{
+								printlexerror(4);
+							}
+						}
+						tempString[j] = '\0';
+						break;
+					}
+					else if(iscntrl(input[i]))	{
+						continue;
+					}
+					else if(input[i] == ';' || input[i] == ',')	{
+						tempString[j] = '\0';
+						addtoken(tempString);
+						tempString[0] = input[i];
+						tempString[1] = '\0';
+						i++;
+						break;
+					}
+					else if((input[i] == ':' || input[i] == '=' || input[i] == '!'
+							|| input[i] == '<' || input[i] == '>'))	{
+
+						if(input[i + 1] == '=')	{
+							tempString[j] = input[i];
+							tempString[j++] = input[i++];
+							tempString[j++] = '\0';
+							i++;
+							break;
+						}
+						else	{
+							printlexerror(1);
+							return NULL;
+						}
+					}
+					else	{
+						tempString[j] = input[i];
+						j++;
+					}
+				}
+			}
+			addtoken(tempString);
+	}
+
+
+	printtokens();
+	return list;
 }
 
+int addtoken(char *input)	{
+	lexeme *temp = malloc(sizeof(lexeme));
+	int num;
+
+	if(strcmp("const", input))	{
+		temp->type = 1;
+	}
+	else if(strcmp("var", input))	{
+		temp->type = 2;
+	}
+	else if(strcmp("procedure", input))	{
+		temp->type = 3;
+	}
+	else if(strcmp("begin", input))	{
+		temp->type = 4;
+	}
+	else if(strcmp("end", input))	{
+		temp->type = 5;
+	}
+	else if(strcmp("while", input))	{
+		temp->type = 6;
+	}
+	else if(strcmp("do", input))	{
+		temp->type = 7;
+	}
+	else if(strcmp("if", input))	{
+		temp->type = 8;
+	}
+	else if(strcmp("then", input))	{
+		temp->type = 9;
+	}
+	else if(strcmp("else", input))	{
+		temp->type = 10;
+	}
+	else if(strcmp("call", input))	{
+		temp->type = 11;
+	}
+	else if(strcmp("write", input))	{
+		temp->type = 12;
+	}
+	else if(strcmp("read", input))	{
+		temp->type = 13;
+	}
+	else if(strcmp(":=", input))	{
+		temp->type = 16;
+	}
+	else if(strcmp("+", input))	{
+		temp->type = 17;
+	}
+	else if(strcmp("-", input))	{
+		temp->type = 18;
+	}
+	else if(strcmp("*", input))	{
+		temp->type = 19;
+	}
+	else if(strcmp("/", input))	{
+		temp->type = 20;
+	}
+	else if(strcmp("%", input))	{
+		temp->type = 21;
+	}
+	else if(strcmp("==", input))	{
+		temp->type = 22;
+	}
+	else if(strcmp("!=", input))	{
+		temp->type = 23;
+	}
+	else if(strcmp("<", input))	{
+		temp->type = 24;
+	}
+	else if(strcmp("<=", input))	{
+		temp->type = 25;
+	}
+	else if(strcmp(">", input))	{
+		temp->type = 26;
+	}
+	else if(strcmp(">=", input))	{
+		temp->type = 27;
+	}
+	else if(strcmp("odd", input))	{
+		temp->type = 28;
+	}
+	else if(strcmp("(", input))	{
+		temp->type = 29;
+	}
+	else if(strcmp(")", input))	{
+		temp->type = 30;
+	}
+	else if(strcmp(",", input))	{
+		temp->type = 31;
+	}
+	else if(strcmp(".", input))	{
+		temp->type = 32;
+	}
+	else if(strcmp(";", input))	{
+		temp->type = 33;
+	}
+	else if(isnum(input))	{
+		temp->type = 15;
+		temp->value = atoi(input);
+	}
+	else if(isid(input))	{
+		temp->type = 14;
+		strcpy(temp->name, input);
+	}
+	else	{
+		free(temp);
+		return 0;
+	}
+
+	list[lex_index] = *temp;
+	lex_index++;
+	return 1;
+}
+
+int isnum(char* input)	{
+	int len = strlen(input);
+
+	if(len <= MAX_NUMBER_LEN)	{
+		for(int i = 0; i <= len; i++)	{
+			if(!isdigit(input[i]))	{
+				return 0;
+			}
+		}	
+
+		return 1;
+	}
+	else	{
+		return 0;
+	}
+}
+
+int isid(char* input)	{
+	if(!isdigit(input[0]) && input[0] != ' ' && !iscntrl(input[0]))
+		return 1;
+	else
+		printlexerror(3);
+		return 0;
+}
 
 void printtokens()
 {
