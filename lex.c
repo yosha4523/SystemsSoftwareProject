@@ -9,6 +9,9 @@
 	5 points.
 */
 
+//Yosha Riley
+//COP4331
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,6 +33,7 @@ int isid(char* input);
 
 lexeme *lexanalyzer(char *input)
 {
+	list = malloc(sizeof(lexeme) * MAX_NUMBER_TOKENS);
 	char tempString[MAX_IDENT_LEN + 1];
 	int i = 0;
 	lex_index = 0;
@@ -40,7 +44,7 @@ lexeme *lexanalyzer(char *input)
 			for(int j = 0;;i++)	{
 
 					if(input[i] == '/' && input[i + 1] == '/')	{
-						while(input[i] != '\n' || input[i] != '\r')	{
+						while(input[i] != '\n')	{
 							i++;
 						}
 					}
@@ -49,23 +53,25 @@ lexeme *lexanalyzer(char *input)
 						if(strlen(tempString) == 0)
 							continue;
 						tempString[j] = '\0';
-						i++;
 						break;
 					}
 					else if(isdigit(input[i]) && j == 0)	{
 						while(isdigit(input[i]))	{
-							if(j <= MAX_NUMBER_LEN){
+							if(j <= MAX_NUMBER_LEN)	{
 								tempString[j] = input[i];
 								i++;
 								j++;
 							}
 							else	{
 								printlexerror(3);
+								return NULL;
 							}
 						}
 						if(isalpha(input[i]))	{
 							printlexerror(2);
+							return NULL;
 						}
+						i--;
 						tempString[j] = '\0';
 						break;
 					}
@@ -78,9 +84,11 @@ lexeme *lexanalyzer(char *input)
 							}
 							else	{
 								printlexerror(4);
+								return NULL;
 							}
 						}
 						tempString[j] = '\0';
+						i--;
 						break;
 					}
 					else if(iscntrl(input[i]))	{
@@ -91,17 +99,16 @@ lexeme *lexanalyzer(char *input)
 						addtoken(tempString);
 						tempString[0] = input[i];
 						tempString[1] = '\0';
-						i++;
 						break;
 					}
-					else if((input[i] == ':' || input[i] == '=' || input[i] == '!'
-							|| input[i] == '<' || input[i] == '>'))	{
-
+					else if(input[i] == ':' || input[i] == '=' || input[i] == '!')	{
 						if(input[i + 1] == '=')	{
 							tempString[j] = input[i];
-							tempString[j++] = input[i++];
-							tempString[j++] = '\0';
 							i++;
+							j++;
+							tempString[j] = input[i];
+							j++;
+							tempString[j] = '\0';
 							break;
 						}
 						else	{
@@ -109,13 +116,48 @@ lexeme *lexanalyzer(char *input)
 							return NULL;
 						}
 					}
+					else if(input[i] == '<' || input[i] == '>')	{
+						if(input[i + 1] == '=')	{
+							tempString[j] = input[i];
+							i++;
+							j++;
+							tempString[j] = input[i];
+							j++;
+							tempString[j] = '\0';
+							break;
+						}
+
+						tempString[j] = input[i];
+						j++;
+					}
+					else if(input[i] == '.')	{
+						tempString[j] = '\0';
+						addtoken(tempString);
+						tempString[0] = input[i];
+						tempString[1] = '\0';
+						break;
+					}
+					else if(input[i] == '(' || input[i] == ')')	{
+						tempString[j] = '\0';
+						addtoken(tempString);
+						tempString[0] = input[i];
+						tempString[1] = '\0';
+						break;
+					}
+					else if(input[i] == '+' || input[i] == '-' || input[i] == '/' || input[i] == '*')	{
+						tempString[j] = '\0';
+						addtoken(tempString);
+						tempString[0] = input[i];
+						tempString[1] = '\0';
+						break;
+					}
 					else	{
 						tempString[j] = input[i];
 						j++;
 					}
 				}
 			}
-			addtoken(tempString);
+		addtoken(tempString);
 	}
 
 
@@ -124,142 +166,130 @@ lexeme *lexanalyzer(char *input)
 }
 
 int addtoken(char *input)	{
-	lexeme *temp = malloc(sizeof(lexeme));
 	int num;
-
-	if(strcmp("const", input))	{
-		temp->type = 1;
+	//printf("%s\n", input);
+	if(!strcmp("const", input))	{
+		list[lex_index].type = 1;
 	}
-	else if(strcmp("var", input))	{
-		temp->type = 2;
+	else if(!strcmp("var", input))	{
+		list[lex_index].type = 2;
 	}
-	else if(strcmp("procedure", input))	{
-		temp->type = 3;
+	else if(!strcmp("procedure", input))	{
+		list[lex_index].type = 3;
 	}
-	else if(strcmp("begin", input))	{
-		temp->type = 4;
+	else if(!strcmp("begin", input))	{
+		list[lex_index].type = 4;
 	}
-	else if(strcmp("end", input))	{
-		temp->type = 5;
+	else if(!strcmp("end", input))	{
+		list[lex_index].type = 5;
 	}
-	else if(strcmp("while", input))	{
-		temp->type = 6;
+	else if(!strcmp("while", input))	{
+		list[lex_index].type = 6;
 	}
-	else if(strcmp("do", input))	{
-		temp->type = 7;
+	else if(!strcmp("do", input))	{
+		list[lex_index].type = 7;
 	}
-	else if(strcmp("if", input))	{
-		temp->type = 8;
+	else if(!strcmp("if", input))	{
+		list[lex_index].type = 8;
 	}
-	else if(strcmp("then", input))	{
-		temp->type = 9;
+	else if(!strcmp("then", input))	{
+		list[lex_index].type = 9;
 	}
-	else if(strcmp("else", input))	{
-		temp->type = 10;
+	else if(!strcmp("else", input))	{
+		list[lex_index].type = 10;
 	}
-	else if(strcmp("call", input))	{
-		temp->type = 11;
+	else if(!strcmp("call", input))	{
+		list[lex_index].type = 11;
 	}
-	else if(strcmp("write", input))	{
-		temp->type = 12;
+	else if(!strcmp("write", input))	{
+		list[lex_index].type = 12;
 	}
-	else if(strcmp("read", input))	{
-		temp->type = 13;
+	else if(!strcmp("read", input))	{
+		list[lex_index].type = 13;
 	}
-	else if(strcmp(":=", input))	{
-		temp->type = 16;
+	else if(!strcmp(":=", input))	{
+		list[lex_index].type = 16;
 	}
-	else if(strcmp("+", input))	{
-		temp->type = 17;
+	else if(!strcmp("+", input))	{
+		list[lex_index].type = 17;
 	}
-	else if(strcmp("-", input))	{
-		temp->type = 18;
+	else if(!strcmp("-", input))	{
+		list[lex_index].type = 18;
 	}
-	else if(strcmp("*", input))	{
-		temp->type = 19;
+	else if(!strcmp("*", input))	{
+		list[lex_index].type = 19;
 	}
-	else if(strcmp("/", input))	{
-		temp->type = 20;
+	else if(!strcmp("/", input))	{
+		list[lex_index].type = 20;
 	}
-	else if(strcmp("%", input))	{
-		temp->type = 21;
+	else if(!strcmp("%", input))	{
+		list[lex_index].type = 21;
 	}
-	else if(strcmp("==", input))	{
-		temp->type = 22;
+	else if(!strcmp("==", input))	{
+		list[lex_index].type = 22;
 	}
-	else if(strcmp("!=", input))	{
-		temp->type = 23;
+	else if(!strcmp("!=", input))	{
+		list[lex_index].type = 23;
 	}
-	else if(strcmp("<", input))	{
-		temp->type = 24;
+	else if(!strcmp("<", input))	{
+		list[lex_index].type = 24;
 	}
-	else if(strcmp("<=", input))	{
-		temp->type = 25;
+	else if(!strcmp("<=", input))	{
+		list[lex_index].type = 25;
 	}
-	else if(strcmp(">", input))	{
-		temp->type = 26;
+	else if(!strcmp(">", input))	{
+		list[lex_index].type = 26;
 	}
-	else if(strcmp(">=", input))	{
-		temp->type = 27;
+	else if(!strcmp(">=", input))	{
+		list[lex_index].type = 27;
 	}
-	else if(strcmp("odd", input))	{
-		temp->type = 28;
+	else if(!strcmp("odd", input))	{
+		list[lex_index].type = 28;
 	}
-	else if(strcmp("(", input))	{
-		temp->type = 29;
+	else if(!strcmp("(", input))	{
+		list[lex_index].type = 29;
 	}
-	else if(strcmp(")", input))	{
-		temp->type = 30;
+	else if(!strcmp(")", input))	{
+		list[lex_index].type = 30;
 	}
-	else if(strcmp(",", input))	{
-		temp->type = 31;
+	else if(!strcmp(",", input))	{
+		list[lex_index].type = 31;
 	}
-	else if(strcmp(".", input))	{
-		temp->type = 32;
+	else if(!strcmp(".", input))	{
+		list[lex_index].type = 32;
 	}
-	else if(strcmp(";", input))	{
-		temp->type = 33;
-	}
-	else if(isnum(input))	{
-		temp->type = 15;
-		temp->value = atoi(input);
+	else if(!strcmp(";", input))	{
+		list[lex_index].type = 33;
 	}
 	else if(isid(input))	{
-		temp->type = 14;
-		strcpy(temp->name, input);
+		list[lex_index].type = 14;
+		strcpy(list[lex_index].name, input);
+	}
+	else if(isnum(input))	{
+		list[lex_index].type = 15;
+		list[lex_index].value = atoi(input);
 	}
 	else	{
-		free(temp);
 		return 0;
 	}
 
-	list[lex_index] = *temp;
 	lex_index++;
 	return 1;
 }
 
 int isnum(char* input)	{
-	int len = strlen(input);
-
-	if(len <= MAX_NUMBER_LEN)	{
-		for(int i = 0; i <= len; i++)	{
-			if(!isdigit(input[i]))	{
-				return 0;
-			}
-		}	
-
-		return 1;
-	}
-	else	{
-		return 0;
-	}
+	for(int i = 0; input[i] != '\0'; i++)	{
+		if(isdigit(input[i]))	{
+			return 1;
+		}
+	}	
+	return 0;
 }
 
 int isid(char* input)	{
 	if(!isdigit(input[0]) && input[0] != ' ' && !iscntrl(input[0]))
 		return 1;
 	else
-		printlexerror(3);
 		return 0;
 }
 
