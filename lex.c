@@ -10,7 +10,7 @@
 */
 
 //Yosha Riley
-//COP4331
+//COP3402 Fall 2021
 
 
 #include <stdlib.h>
@@ -30,31 +30,45 @@ void printtokens();
 int addtoken(char* input);
 int isnum(char* input);
 int isid(char* input);
+int issym(char input);
 
 lexeme *lexanalyzer(char *input)
 {
+	//allocate memory for the list
 	list = malloc(sizeof(lexeme) * MAX_NUMBER_TOKENS);
+
+	//make a temp string to send to the add token funciton
 	char tempString[MAX_IDENT_LEN + 1];
 	int i = 0;
 	lex_index = 0;
 
-	for(i = 0; i < strlen(input); i++)	{
-		if(input[i] != '\0' && lex_index <= 500)	{
+	//outer loop to go through the input
+	for(i = 0; input[i] != '\0'; i++)	{
+		//make sure we dont go over our max input
+		if(lex_index <= MAX_NUMBER_TOKENS)	{
 			
+			//inner loop to construct the strings to pass
 			for(int j = 0;;i++)	{
 
+					//skip through comments
 					if(input[i] == '/' && input[i + 1] == '/')	{
 						while(input[i] != '\n')	{
 							i++;
 						}
 					}
 
+					//skip over spaces unless they are in teh middle of a string
 					if(input[i] == ' ')	{
 						if(strlen(tempString) == 0)
 							continue;
 						tempString[j] = '\0';
 						break;
 					}
+					//skips over all control charaacters
+					else if(iscntrl(input[i]))	{
+						continue;
+					}
+					//reads numbers and throws the 2 related errors
 					else if(isdigit(input[i]) && j == 0)	{
 						while(isdigit(input[i]))	{
 							if(j <= MAX_NUMBER_LEN)	{
@@ -75,7 +89,9 @@ lexeme *lexanalyzer(char *input)
 						tempString[j] = '\0';
 						break;
 					}
+					//starts reading identifiers and throws related error
 					else if(isalpha(input[i]) && j== 0)	{
+						//ensures alphanumerics
 						while(isalnum(input[i]))	{
 							if(j <= MAX_IDENT_LEN)	{
 								tempString[j] = input[i];
@@ -91,16 +107,7 @@ lexeme *lexanalyzer(char *input)
 						i--;
 						break;
 					}
-					else if(iscntrl(input[i]))	{
-						continue;
-					}
-					else if(input[i] == ';' || input[i] == ',')	{
-						tempString[j] = '\0';
-						addtoken(tempString);
-						tempString[0] = input[i];
-						tempString[1] = '\0';
-						break;
-					}
+					//checks for symbols that MUST conjoin with equals
 					else if(input[i] == ':' || input[i] == '=' || input[i] == '!')	{
 						if(input[i + 1] == '=')	{
 							tempString[j] = input[i];
@@ -116,6 +123,7 @@ lexeme *lexanalyzer(char *input)
 							return NULL;
 						}
 					}
+					//checks for symbols that MAY conjoin with equals
 					else if(input[i] == '<' || input[i] == '>')	{
 						if(input[i + 1] == '=')	{
 							tempString[j] = input[i];
@@ -130,44 +138,27 @@ lexeme *lexanalyzer(char *input)
 						tempString[j] = input[i];
 						j++;
 					}
-					else if(input[i] == '.')	{
+					//checks for symbols that arent related to equals
+					else if(issym(input[i]))	{
 						tempString[j] = '\0';
 						addtoken(tempString);
 						tempString[0] = input[i];
 						tempString[1] = '\0';
 						break;
-					}
-					else if(input[i] == '(' || input[i] == ')')	{
-						tempString[j] = '\0';
-						addtoken(tempString);
-						tempString[0] = input[i];
-						tempString[1] = '\0';
-						break;
-					}
-					else if(input[i] == '+' || input[i] == '-' || input[i] == '/' || input[i] == '*')	{
-						tempString[j] = '\0';
-						addtoken(tempString);
-						tempString[0] = input[i];
-						tempString[1] = '\0';
-						break;
-					}
-					else	{
-						tempString[j] = input[i];
-						j++;
 					}
 				}
 			}
+		//adds whatever is in temp string to the list
 		addtoken(tempString);
 	}
-
 
 	printtokens();
 	return list;
 }
 
+//adds tokens based on a string to the list
 int addtoken(char *input)	{
-	int num;
-	//printf("%s\n", input);
+
 	if(!strcmp("const", input))	{
 		list[lex_index].type = 1;
 	}
@@ -277,6 +268,16 @@ int addtoken(char *input)	{
 	return 1;
 }
 
+//condenses the if statement in the lexanalyzer function
+int issym(char input)	{
+	if(input == '(' || input == ')' || input == '.' || input == '+' 
+		|| input == '-' || input == '/' || input == '*' || input == ';' || input == ',')	{
+		return 1;
+	}
+	return 0;
+}
+
+//checks if a string is a number
 int isnum(char* input)	{
 	for(int i = 0; input[i] != '\0'; i++)	{
 		if(isdigit(input[i]))	{
@@ -286,6 +287,7 @@ int isnum(char* input)	{
 	return 0;
 }
 
+//checks if a string is an identifier
 int isid(char* input)	{
 	if(!isdigit(input[0]) && input[0] != ' ' && !iscntrl(input[0]))
 		return 1;
