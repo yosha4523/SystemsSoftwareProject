@@ -13,7 +13,7 @@ typedef struct IRstruct  {
 
 int BP;     //Base pointer
 int SP;     //Stack pointer
-int PC; //Program counter
+int PC;     //Program counter
 int DP;     //Data pointer
 int GP;     //Global pointer
 int FREE;   //Heap pointer
