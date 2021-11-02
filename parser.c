@@ -44,7 +44,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 
 	if(!program(list))
 		return NULL;
-	
+
 	/* this line is EXTREMELY IMPORTANT, you MUST uncomment it
 		when you test your code otherwise IT WILL SEGFAULT in 
 		vm.o THIS LINE IS HOW THE VM KNOWS WHERE THE CODE ENDS
@@ -67,7 +67,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 int program(lexeme *list)
 {
 	emit(7, lexLevel, 0); //JMP
-	addToSymbolTable(3, "main", 0, lexLevel, 0, 0);
+	addToSymbolTable(3, "main", 0, 0, 0, 0);
 	lexLevel = -1;
 	
 	if(!block(list))
@@ -81,13 +81,12 @@ int program(lexeme *list)
 
 	emit(9, 0, 3); //HALT
 
-	int i = 0;
-	while(list)	{
+	for(int i = 0; i < 3000; i++)
+	{
 		if(list[i].type == callsym)
 		{
 			code[i].m = table[code[i].m].addr;
 		}
-		i++;
 	}
 	code[0].m = table[0].addr;
 	
@@ -97,7 +96,7 @@ int program(lexeme *list)
 int block(lexeme *list)
 {
 	lexLevel++;
-	int index = lIndex - 1;
+	int index = tIndex - 1;
 	
 	if(!constDec(list))
 		return 1;
@@ -183,6 +182,7 @@ int constDec(lexeme *list)
 				return 1;
 			}
 		}
+		lIndex++;
 	}
 
 	return 0;
@@ -219,6 +219,7 @@ int varDec(lexeme *list)
 			{
 				addToSymbolTable(2, list[lIndex].name, 0, lexLevel, numVars + 2, 0);
 			}
+
 			lIndex++;
 		}while(list[lIndex].type == commasym);
 
@@ -235,6 +236,8 @@ int varDec(lexeme *list)
 				return -1;
 			}
 		}
+
+		lIndex++;
 	}
 	return numVars;
 }
@@ -276,7 +279,7 @@ int procedureDec(lexeme *list)
 		}
 
 		lIndex++;
-		emit(2, lexLevel, 0);
+		emit(2, lexLevel, 0); //RTN
 	}
 
 	return 0;
@@ -448,7 +451,7 @@ int statement(lexeme *list)
 		if(!expression(list))
 			return 1;
 		
-		emit(9, lexLevel, 1);
+		emit(9, lexLevel, 1); //WRITE
 
 		return 0;
 	}
@@ -564,7 +567,7 @@ int expression(lexeme *list)
 				lIndex++;
 				if(!term(list))
 					return 1;
-				emit(2, lexLevel, 3);
+				emit(2, lexLevel, 3); //SUB
 			}
 		}
 	}
@@ -675,7 +678,7 @@ int factor(lexeme *list)
 	}
 	else if(list[lIndex].type == numbersym)
 	{
-		emit(1, lexLevel, list[lIndex].value);
+		emit(1, lexLevel, list[lIndex].value); //LIT
 		lIndex++;
 	}
 	else if(list[lIndex].type == lparensym)
@@ -737,7 +740,7 @@ int findSymbol(lexeme item, int kind)
 
 void mark()
 {
-	for(int i = MAX_SYMBOL_COUNT - 1; i > 0; i--)
+	for(int i = MAX_SYMBOL_COUNT - 1; i >= 0; i--)
 	{
 		if(table[i].mark == 0 && table[i].level < lexLevel)
 		{
