@@ -36,7 +36,7 @@ begin
 		begin
 			read d; read c; read per;
 			if odd action then
-				call findtip;
+				call findtip
 			else
 				call findtotal;
 			write d; write c;
