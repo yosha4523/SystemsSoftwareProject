@@ -1,32 +1,26 @@
 Name: Yosha Riley
 
-I altered the lex_index but only in functions that I wrote, 
-otherwise I didn't change any of the provided code.
+I did not change anything from the given files (besides parser.c of course).
 
-To Compile:
-gcc driver.c lex.c -lm | ./a.out test.txt
-	where test.txt is a text file of the code you wish to analyze
+Instructions
 
+To run:
+You must first compile with the following command
+	gcc -g vm.o lex.o parser.c driver.c
 
-The text file must be formated as code such as the example in test1.txt: 
+Then run the following to compile a text file
 
-// this program multiplies two numbers given by the user
-const one := 1;
-var x, y, result;
-procedure mult;
-	begin
-	if x > one then	// x number of recursive calls
-		begin
-			x := x - one;
-			call mult;
-		end;
-	result := result + y; // after we make x recursive calls we can start adding y
-	end;
-begin
-	// initialize values
-	read x;
-	read y;
-	result := 0;
-	call mult;
-	write result;
-end.
+./a.out infile.txt
+
+where infile is the code you want to compile
+
+The compiler supports the following tags for additional information while compiling
+
+-l - prints the lexeme list of tokens
+-s - prints the symbol table
+-a - prints assembly code
+-v - prints the VM execution trace
+
+an example of using them would be -
+
+./a.out infile.txt -a -s

@@ -10,6 +10,7 @@ instruction *code;
 int cIndex;
 symbol *table;
 int tIndex;
+
 //added globals
 int error;
 int lexLevel;
@@ -44,6 +45,8 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 	lIndex = 0;
 	error = 0;
 
+	//Starts compilation, the if statement check for the error flag in order to safely stop execution, once an eerror is encountered
+	//the error flag will be flipped then it will begin returning up the chain of fucntion calls
 	program(list);
 	if(error)
 		return NULL;
@@ -54,6 +57,7 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 		WHEN COPYING IT TO THE PAS*/
 	code[cIndex].opcode = -1;
 
+	//checks for print flags
 	if(printTable)
 	{
 		printsymboltable();
@@ -69,14 +73,17 @@ instruction *parse(lexeme *list, int printTable, int printCode)
 
 void program(lexeme *list)
 {
+	//makes space for main and will set the correct value later
 	emit(7, 0, 0); //JMP
 	addToSymbolTable(3, "main", 0, 0, 0, 0);
 	lexLevel = -1;
 	
+	//starts the block that will contain the whole program
 	block(list);
 	if(error)
 		return;
 
+	//program must end with a period
 	if(list[lIndex].type != periodsym)
 	{
 		printparseerror(1);
@@ -94,6 +101,7 @@ void program(lexeme *list)
 		}
 	}*/
 
+	//sets correct main address
 	code[0].m = table[0].addr;
 	
 	return;
@@ -101,9 +109,11 @@ void program(lexeme *list)
 
 void block(lexeme *list)
 {
+	//sets scope for the block
 	lexLevel++;
 	int index = tIndex - 1;
 	
+	//declares variables/consts/procedures at begginng of the block
 	constDec(list);
 	if(error)
 		return;
@@ -117,6 +127,7 @@ void block(lexeme *list)
 		return;
 	
 	table[index].addr = cIndex * 3;
+	//makes space for each variable
 	if(lexLevel == 0)
 	{
 		emit(6, 0, x); //INC
@@ -125,10 +136,12 @@ void block(lexeme *list)
 		emit(6, 0, x + 3); //INC
 	}
 
+	//now that declarations are done go to actual statements
 	statement(list);
 	if(error)
 		return;
 	
+	//mark all declarations that are going out of scope
 	mark();
 	lexLevel--;
 }
@@ -147,6 +160,7 @@ void constDec(lexeme *list)
 				return;
 			}
 
+			//checks to ensure that there are not muliple identifiers with the same name
 			int symidx = multiDeclarationCheck(list[lIndex]);
 
 			if(symidx != -1)
@@ -288,6 +302,7 @@ void procedureDec(lexeme *list)
 			return;
 		}
 
+		//starts the block that will be the logic for the procedure
 		lIndex++;
 		block(list);
 		if(error)
@@ -309,8 +324,10 @@ void procedureDec(lexeme *list)
 
 void statement(lexeme *list)
 {
+	//identifiers
 	if(list[lIndex].type == identsym)
 	{
+		//look for an identifier of this name and type
 		int symidx = findSymbol(list[lIndex], 2);
 		if(symidx == -1)
 		{
@@ -336,6 +353,7 @@ void statement(lexeme *list)
 			return;
 		}
 
+		//math expression that will be stored in the id
 		lIndex++;
 		expression(list);
 		if(error)
@@ -345,6 +363,7 @@ void statement(lexeme *list)
 		return;
 	}
 
+	//begins an extended series of statements, must be closed with end
 	if(list[lIndex].type == beginsym)
 	{
 		do
@@ -382,6 +401,7 @@ void statement(lexeme *list)
 		if(error)
 			return;
 
+		//creates a jpc which will be fixed later
 		int jpcidx = cIndex;
 		emit(8, 0, 0); //JPC
 
@@ -397,23 +417,18 @@ void statement(lexeme *list)
 		if(error)
 			return;
 		
-		if(list[lIndex].type == semicolonsym)
-		{
-			lIndex++;
-		}
-
+		//else is optional is basically the same thing as if but changes the original jpc index
 		if(list[lIndex].type == elsesym)
 		{
 			int jmpidx = cIndex;
 			emit(7, 0, 0); //JMP
 			code[jpcidx].m = cIndex * 3;
-			//cIndex++;
 
 			lIndex++;
 			statement(list);
 			if(error)
 				return;
-			
+
 			code[jmpidx].m = cIndex * 3;
 		}
 		else
@@ -424,6 +439,7 @@ void statement(lexeme *list)
 		return;
 	}
 
+	//while is similar to if but can repeat
 	if(list[lIndex].type == whilesym)
 	{
 		lIndex++;
@@ -464,6 +480,7 @@ void statement(lexeme *list)
 			return;
 		}
 
+		//looks for the symbol to read
 		int symidx = findSymbol(list[lIndex], 2);
 
 		if(symidx == -1)
@@ -482,6 +499,7 @@ void statement(lexeme *list)
 			}
 		}
 
+		//whem it finds that symbol you read it and store it
 		lIndex++;
 		emit(9, lexLevel, 2); //READ
 		emit(4, lexLevel - table[symidx].level, table[symidx].addr); //STO
@@ -505,6 +523,8 @@ void statement(lexeme *list)
 	if(list[lIndex].type == callsym)
 	{
 		lIndex++;
+
+		//looks for the given proc id 
 		int symidx = findSymbol(list[lIndex], 3);
 		if(symidx == -1)
 		{
@@ -522,11 +542,13 @@ void statement(lexeme *list)
 			}
 		}
 
+		//emits the proc address to run it
 		lIndex++;
 		emit(5, lexLevel - table[symidx].level, table[symidx].addr); //CAL
 	}
 }
 
+//emits all conditional statemtns
 void condition(lexeme *list)
 {
 	if(list[lIndex].type == oddsym)
@@ -600,6 +622,7 @@ void condition(lexeme *list)
 	}
 }
 
+//emits all math expressions
 void expression(lexeme *list)
 {
 	if(list[lIndex].type == subsym)
@@ -660,6 +683,7 @@ void expression(lexeme *list)
 		}
 	}
 
+	//ensures balanced expressions
 	if(list[lIndex].type == lparensym || list[lIndex].type == identsym || list[lIndex].type == numbersym || list[lIndex].type == oddsym)
 	{
 		printparseerror(17);
@@ -668,6 +692,7 @@ void expression(lexeme *list)
 	}
 }
 
+//extends expression for order of operations
 void term(lexeme *list)
 {
 	factor(list);
@@ -705,6 +730,7 @@ void term(lexeme *list)
 	return;
 }
 
+//further extends expression for order of operations for parenthesis and literals
 void factor(lexeme *list)
 {
 	if(list[lIndex].type == identsym)
@@ -772,6 +798,7 @@ void factor(lexeme *list)
 	}
 }
 
+//linear search until it finds a id with the same name and in the same scope
 int multiDeclarationCheck(lexeme item)
 {
 	int i;
@@ -786,6 +813,7 @@ int multiDeclarationCheck(lexeme item)
 	return -1;
 }
 
+//linear search that finds teh same name and kind in the scope but returns with the location in the code
 int findSymbol(lexeme item, int kind)
 {
 	int i;
@@ -806,6 +834,7 @@ int findSymbol(lexeme item, int kind)
 	return retval;
 }
 
+//marks all symbols that are going out of scope as the block closes so that they are not accessible anymore
 void mark()
 {
 	for(int i = tIndex - 1; i >= 0; i--)
