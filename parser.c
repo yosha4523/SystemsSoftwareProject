@@ -246,7 +246,7 @@ int varDec(lexeme *list)
 			}
 			else
 			{
-				addToSymbolTable(2, list[lIndex].name, 0, lexLevel, numVars + 2, 0);
+				addToSymbolTable(2, list[lIndex].name, 0, lexLevel, numVars + 3, 0);
 			}
 
 			lIndex++;
