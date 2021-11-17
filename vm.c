@@ -60,10 +60,16 @@ void execute_program(instruction *code, int printFlag) {
 
     //load input into text 
     IC = 0;
-    while(code[IC].opcode != -1){
+    int i =0;
+    while(code[i].opcode != -1){
+        pas[IC] = code[i].opcode;
         IC++;
+        pas[IC] = code[i].l;
+        IC++;
+        pas[IC] = code[i].m;
+        IC++;
+        i++;
     }
-
     //fclose(input);
 
     //set initial CPU registers
@@ -99,7 +105,7 @@ void execute_program(instruction *code, int printFlag) {
         lineNo = PC / 3;
         //increment PC
         PC = PC + 3;
-
+        
         //execute cycle
         switch(IR.opcode)   {
             //LIT 
@@ -316,32 +322,43 @@ void execute_program(instruction *code, int printFlag) {
                 break;
             //CAL
             case 5:
-                strncpy(*opname, "CAL", 3);
                 pas[SP - 1] = 0;
                 pas[SP - 2] = base(IR.l);
                 pas[SP - 3] = BP;
                 pas[SP - 4] = PC;
                 BP = SP - 1;
                 PC = IR.m;
+
+                if(printFlag)   {
+                print_execution( lineNo, "CAL", &IR, PC, BP, SP, DP, pas, GP);
+                }
+
                 break;
             //INC
             case 6:
-                strncpy(*opname, "INC", 3);
                 if(BP == GP)    {
                     DP = DP + IR.m;
                 }
                 else    {
                     SP = SP - IR.m;
                 }
+
+                if(printFlag)   {
+                print_execution( lineNo, "INC", &IR, PC, BP, SP, DP, pas, GP);
+                }
+
                 break;
             //JMP
             case 7:
-                strncpy(*opname, "JMP", 3);
                 PC = IR.m;
+
+                if(printFlag)   {
+                print_execution( lineNo, "JMP", &IR, PC, BP, SP, DP, pas, GP);
+                }
+
                 break;
             //JPC
             case 8:
-                strncpy(*opname, "JPC", 3);
                 if(BP == GP)    {
                     if(pas[DP] == 0)    {
                         PC = IR.m;
@@ -354,10 +371,14 @@ void execute_program(instruction *code, int printFlag) {
                     }
                     SP++;
                 }
+
+                if(printFlag)   {
+                print_execution( lineNo, "JPC", &IR, PC, BP, SP, DP, pas, GP);
+                }
+
                 break;
             //SYS
             case 9:
-                strncpy(*opname, "SYS", 3);
                 switch(IR.m)    {
                     case 1:
                         if(BP == GP)    {
@@ -368,6 +389,11 @@ void execute_program(instruction *code, int printFlag) {
                             printf("Top of Stack Value: %d\n", pas[SP]);
                             SP++;
                         }
+
+                        if(printFlag)   {
+                            print_execution( lineNo, "SYS", &IR, PC, BP, SP, DP, pas, GP);
+                        }
+
                         break;
                     case 2:
                         if(BP == GP)    {
@@ -380,15 +406,19 @@ void execute_program(instruction *code, int printFlag) {
                             printf("Please Enter an Integer: ");
                             scanf("%d", &pas[SP]);
                         }
+
+                        if(printFlag)   {
+                            print_execution( lineNo, "SYS", &IR, PC, BP, SP, DP, pas, GP);
+                        }
+
                         break;
                     case 3:
+                        if(printFlag)   {
+                            print_execution( lineNo, "SYS", &IR, PC, BP, SP, DP, pas, GP);
+                        }
                         break;
                 }
                 break;
-        }
-
-        if(printFlag)   {
-            print_execution( lineNo, *opname, &IR, PC, BP, SP, DP, pas, GP);
         }
     }
 

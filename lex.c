@@ -57,7 +57,7 @@ lexeme *lexanalyzer(char *input, int printFlag)
 						}
 					}
 
-					//skip over spaces unless they are in teh middle of a string
+					//skip over spaces unless they are in the middle of a string
 					if(input[i] == ' ')	{
 						if(strlen(tempString) == 0)
 							continue;
@@ -108,7 +108,7 @@ lexeme *lexanalyzer(char *input, int printFlag)
 						break;
 					}
 					//checks for symbols that MUST conjoin with equals
-					else if(input[i] == ':' || input[i] == '=' || input[i] == '!')	{
+					else if(input[i] == ':' || input[i] == '!')	{
 						if(input[i + 1] == '=')	{
 							tempString[j] = input[i];
 							i++;
@@ -267,7 +267,7 @@ int addtoken(char *input)	{
 
 //condenses the if statement in the lexanalyzer function
 int issym(char input)	{
-	if(input == '(' || input == ')' || input == '.' || input == '+' 
+	if(input == '(' || input == ')' || input == '.' || input == '+' || input == '%'
 		|| input == '-' || input == '/' || input == '*' || input == ';' || input == ',')	{
 		return 1;
 	}
