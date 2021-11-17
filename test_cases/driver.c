@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "compiler-1.h"
+#include "compiler.h"
 
 #define MAX_CODE_LENGTH 3000
 

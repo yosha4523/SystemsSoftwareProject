@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include "compiler.h"
+#include "compiler-1.h"
 #define MAX_NUMBER_TOKENS 500
 #define MAX_IDENT_LEN 11
 #define MAX_NUMBER_LEN 5
@@ -32,7 +32,7 @@ int isnum(char* input);
 int isid(char* input);
 int issym(char input);
 
-lexeme *lexanalyzer(char *input)
+lexeme *lexanalyzer(char *input, int printFlag)
 {
 	//allocate memory for the list
 	list = malloc(sizeof(lexeme) * MAX_NUMBER_TOKENS);
@@ -152,7 +152,10 @@ lexeme *lexanalyzer(char *input)
 		addtoken(tempString);
 	}
 
-	printtokens();
+	if(printFlag)
+	{
+		printtokens();
+	}
 	return list;
 }
 
@@ -168,96 +171,90 @@ int addtoken(char *input)	{
 	else if(!strcmp("procedure", input))	{
 		list[lex_index].type = 3;
 	}
-	else if(!strcmp("begin", input))	{
+	else if(!strcmp("do", input))	{
 		list[lex_index].type = 4;
 	}
-	else if(!strcmp("end", input))	{
+	else if(!strcmp("od", input))	{
 		list[lex_index].type = 5;
 	}
 	else if(!strcmp("while", input))	{
 		list[lex_index].type = 6;
 	}
-	else if(!strcmp("do", input))	{
+	else if(!strcmp("when", input))	{
 		list[lex_index].type = 7;
 	}
-	else if(!strcmp("if", input))	{
+	else if(!strcmp("elsedo", input))	{
 		list[lex_index].type = 8;
 	}
-	else if(!strcmp("then", input))	{
+	else if(!strcmp("call", input))	{
 		list[lex_index].type = 9;
 	}
-	else if(!strcmp("else", input))	{
+	else if(!strcmp("write", input))	{
 		list[lex_index].type = 10;
 	}
-	else if(!strcmp("call", input))	{
+	else if(!strcmp("read", input))	{
 		list[lex_index].type = 11;
 	}
-	else if(!strcmp("write", input))	{
-		list[lex_index].type = 12;
-	}
-	else if(!strcmp("read", input))	{
-		list[lex_index].type = 13;
-	}
 	else if(!strcmp(":=", input))	{
-		list[lex_index].type = 16;
+		list[lex_index].type = 14;
 	}
 	else if(!strcmp("+", input))	{
-		list[lex_index].type = 17;
+		list[lex_index].type = 15;
 	}
 	else if(!strcmp("-", input))	{
-		list[lex_index].type = 18;
+		list[lex_index].type = 16;
 	}
 	else if(!strcmp("*", input))	{
-		list[lex_index].type = 19;
+		list[lex_index].type = 17;
 	}
 	else if(!strcmp("/", input))	{
-		list[lex_index].type = 20;
+		list[lex_index].type = 18;
 	}
 	else if(!strcmp("%", input))	{
-		list[lex_index].type = 21;
+		list[lex_index].type = 19;
 	}
-	else if(!strcmp("==", input))	{
-		list[lex_index].type = 22;
+	else if(!strcmp("=", input))	{
+		list[lex_index].type = 20;
 	}
 	else if(!strcmp("!=", input))	{
-		list[lex_index].type = 23;
+		list[lex_index].type = 21;
 	}
 	else if(!strcmp("<", input))	{
-		list[lex_index].type = 24;
+		list[lex_index].type = 22;
 	}
 	else if(!strcmp("<=", input))	{
-		list[lex_index].type = 25;
+		list[lex_index].type = 23;
 	}
 	else if(!strcmp(">", input))	{
-		list[lex_index].type = 26;
+		list[lex_index].type = 24;
 	}
 	else if(!strcmp(">=", input))	{
-		list[lex_index].type = 27;
+		list[lex_index].type = 25;
 	}
 	else if(!strcmp("odd", input))	{
-		list[lex_index].type = 28;
+		list[lex_index].type = 26;
 	}
 	else if(!strcmp("(", input))	{
-		list[lex_index].type = 29;
+		list[lex_index].type = 27;
 	}
 	else if(!strcmp(")", input))	{
-		list[lex_index].type = 30;
+		list[lex_index].type = 28;
 	}
 	else if(!strcmp(",", input))	{
-		list[lex_index].type = 31;
+		list[lex_index].type = 29;
 	}
 	else if(!strcmp(".", input))	{
-		list[lex_index].type = 32;
+		list[lex_index].type = 30;
 	}
 	else if(!strcmp(";", input))	{
-		list[lex_index].type = 33;
+		list[lex_index].type = 31;
 	}
 	else if(isid(input))	{
-		list[lex_index].type = 14;
+		list[lex_index].type = 12;
 		strcpy(list[lex_index].name, input);
 	}
 	else if(isnum(input))	{
-		list[lex_index].type = 15;
+		list[lex_index].type = 13;
 		list[lex_index].value = atoi(input);
 	}
 	else	{
@@ -308,7 +305,7 @@ void printtokens()
 				printf("%11s\t%d", "odd", oddsym);
 				break;
 			case eqlsym:
-				printf("%11s\t%d", "==", eqlsym);
+				printf("%11s\t%d", "=", eqlsym);
 				break;
 			case neqsym:
 				printf("%11s\t%d", "!=", neqsym);
@@ -358,26 +355,20 @@ void printtokens()
 			case assignsym:
 				printf("%11s\t%d", ":=", assignsym);
 				break;
-			case beginsym:
-				printf("%11s\t%d", "begin", beginsym);
+			case dosym:
+				printf("%11s\t%d", "do", dosym);
 				break;
-			case endsym:
-				printf("%11s\t%d", "end", endsym);
+			case odsym:
+				printf("%11s\t%d", "od", odsym);
 				break;
-			case ifsym:
-				printf("%11s\t%d", "if", ifsym);
+			case whensym:
+				printf("%11s\t%d", "if", whensym);
 				break;
-			case thensym:
-				printf("%11s\t%d", "then", thensym);
-				break;
-			case elsesym:
-				printf("%11s\t%d", "else", elsesym);
+			case elsedosym:
+				printf("%11s\t%d", "else", elsedosym);
 				break;
 			case whilesym:
 				printf("%11s\t%d", "while", whilesym);
-				break;
-			case dosym:
-				printf("%11s\t%d", "do", dosym);
 				break;
 			case callsym:
 				printf("%11s\t%d", "call", callsym);

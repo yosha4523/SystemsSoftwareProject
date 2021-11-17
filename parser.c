@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "compiler.h"
+#include "compiler-1.h"
 
 #define MAX_CODE_LENGTH 1000
 #define MAX_SYMBOL_COUNT 100
@@ -133,7 +133,7 @@ void block(lexeme *list)
 		emit(6, 0, x); //INC
 	}
 	else	{
-		emit(6, 0, x + 3); //INC
+		emit(6, 0, x + 4); //INC
 	}
 
 	//now that declarations are done go to actual statements
@@ -235,7 +235,7 @@ int varDec(lexeme *list)
 
 			if(symidx != -1)
 			{
-				printparseerror(13);
+				printparseerror(18);
 				error = 1;
 				return -1;
 			}
@@ -256,7 +256,7 @@ int varDec(lexeme *list)
 		{
 			if(list[lIndex].type == identsym)
 			{
-				printparseerror(3);
+				printparseerror(13);
 				error = 1;
 				return -1;
 			}
@@ -333,13 +333,13 @@ void statement(lexeme *list)
 		{
 			if(findSymbol(list[lIndex], 1) != findSymbol(list[lIndex], 3))
 			{
-				printparseerror(19);
+				printparseerror(6);
 				error = 1;
 				return;
 			}
 			else
 			{
-				printparseerror(6);
+				printparseerror(19);
 				error = 1;
 				return;
 			}
@@ -363,8 +363,8 @@ void statement(lexeme *list)
 		return;
 	}
 
-	//begins an extended series of statements, must be closed with end
-	if(list[lIndex].type == beginsym)
+	//begins an extended series of statements, must be closed with od
+	if(list[lIndex].type == dosym)
 	{
 		do
 		{
@@ -375,9 +375,9 @@ void statement(lexeme *list)
 		}
 		while(list[lIndex].type == semicolonsym);
 		
-		if(list[lIndex].type != endsym)
+		if(list[lIndex].type != odsym)
 		{
-			if(list[lIndex].type == identsym || list[lIndex].type == beginsym || list[lIndex].type == ifsym || list[lIndex].type == whilesym || list[lIndex].type == readsym || list[lIndex].type == writesym || list[lIndex].type == callsym)
+			if(list[lIndex].type == identsym || list[lIndex].type == dosym || list[lIndex].type == whensym || list[lIndex].type == whilesym || list[lIndex].type == readsym || list[lIndex].type == writesym || list[lIndex].type == callsym)
 			{
 				printparseerror(15);
 				error = 1;
@@ -394,7 +394,7 @@ void statement(lexeme *list)
 		return;
 	}
 
-	if(list[lIndex].type == ifsym)
+	if(list[lIndex].type == whensym)
 	{
 		lIndex++;
 		condition(list);
@@ -405,7 +405,7 @@ void statement(lexeme *list)
 		int jpcidx = cIndex;
 		emit(8, 0, 0); //JPC
 
-		if(list[lIndex].type != thensym)
+		if(list[lIndex].type != dosym)
 		{
 			printparseerror(8);
 			error = 1;
@@ -417,8 +417,8 @@ void statement(lexeme *list)
 		if(error)
 			return;
 		
-		//else is optional is basically the same thing as if but changes the original jpc index
-		if(list[lIndex].type == elsesym)
+		//elsedo is optional is basically the same thing as if but changes the original jpc index
+		if(list[lIndex].type == elsedosym)
 		{
 			int jmpidx = cIndex;
 			emit(7, 0, 0); //JMP
@@ -487,13 +487,13 @@ void statement(lexeme *list)
 		{
 			if(findSymbol(list[lIndex], 1) != findSymbol(list[lIndex], 3))
 			{
-				printparseerror(19);
+				printparseerror(6);
 				error = 1;
 				return;
 			}
 			else
 			{
-				printparseerror(6);
+				printparseerror(19);
 				error = 1;
 				return;
 			}
@@ -501,7 +501,7 @@ void statement(lexeme *list)
 
 		//whem it finds that symbol you read it and store it
 		lIndex++;
-		emit(9, lexLevel, 2); //READ
+		emit(9, 0, 2); //READ
 		emit(4, lexLevel - table[symidx].level, table[symidx].addr); //STO
 		
 		return;
@@ -515,7 +515,7 @@ void statement(lexeme *list)
 		if(error)
 			return;
 		
-		emit(9, lexLevel, 1); //WRITE
+		emit(9, 0, 1); //WRITE
 
 		return;
 	}
@@ -530,13 +530,13 @@ void statement(lexeme *list)
 		{
 			if(findSymbol(list[lIndex], 1) != findSymbol(list[lIndex], 2))
 			{
-				printparseerror(19);
+				printparseerror(7);
 				error = 1;
 				return;
 			}
 			else
 			{
-				printparseerror(7);
+				printparseerror(19);
 				error = 1;
 				return;
 			}
@@ -897,7 +897,7 @@ void printparseerror(int err_code)
 			printf("Parser Error: call must be followed by a procedure identifier\n");
 			break;
 		case 8:
-			printf("Parser Error: if must be followed by then\n");
+			printf("Parser Error: when must be followed by do\n");
 			break;
 		case 9:
 			printf("Parser Error: while must be followed by do\n");
@@ -918,10 +918,10 @@ void printparseerror(int err_code)
 			printf("Parser Error: Symbol declarations should close with a semicolon\n");
 			break;
 		case 15:
-			printf("Parser Error: Statements within begin-end must be separated by a semicolon\n");
+			printf("Parser Error: Statements within do-od must be separated by a semicolon\n");
 			break;
 		case 16:
-			printf("Parser Error: begin must be followed by end\n");
+			printf("Parser Error: do must be followed by od\n");
 			break;
 		case 17:
 			printf("Parser Error: Bad arithmetic\n");

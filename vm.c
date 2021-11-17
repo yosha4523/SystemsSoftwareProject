@@ -2,14 +2,15 @@
 //PM/0 VM
 #include <stdio.h>
 #include <string.h>
+#include "compiler-1.h"
 
 #define MAX_PAS_LENGTH 500
 
-typedef struct IRstruct  {
+/*typedef struct IRstruct  {
     int OP;
     int L;
     int M;
-} IRstruct;
+} IRstruct;*/
 
 int BP;     //Base pointer
 int SP;     //Stack pointer
@@ -23,18 +24,18 @@ int pas[MAX_PAS_LENGTH];
 int base(int L) {
     int  arb = BP;      //arb -> activation record base
     while (L > 0)   {   //find base L levels down
-        arb = pas[arb];
+        arb = pas[arb - 1];
         L--;
     }
 
     return arb;
 }
 
-void print_execution(int line, char *opname, IRstruct *IR, int PC, int BP, int SP, int DP, int *pas, int GP)
+void print_execution(int line, char *opname, instruction *IR, int PC, int BP, int SP, int DP, int *pas, int GP)
 {
 	int i;
 	// print out instruction and registers
-	printf("%2d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t", line, opname, IR->L, IR->M, PC, BP, SP, DP);
+	printf("%2d\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t", line, opname, IR->l, IR->m, PC, BP, SP, DP);
 	
 	// print data section
 	for (i = GP; i <= DP; i++)
@@ -48,8 +49,8 @@ void print_execution(int line, char *opname, IRstruct *IR, int PC, int BP, int S
 	printf("\n");
 }
 
-void main(int argc, char** argv) {
-    FILE* input = fopen(argv[1], "r");
+void execute_program(instruction *code, int printFlag) {
+    //FILE* input = fopen(argv[1], "r");
     char *opname[3];
     int lineNo;
 
@@ -59,14 +60,14 @@ void main(int argc, char** argv) {
 
     //load input into text 
     IC = 0;
-    while(fscanf(input, "%i", &pas[IC]) != EOF){
+    while(code[IC].opcode != -1){
         IC++;
     }
 
-    fclose(input);
+    //fclose(input);
 
     //set initial CPU registers
-    IRstruct IR;
+    instruction IR;
     PC = 0;
     SP = MAX_PAS_LENGTH;
     GP = IC;
@@ -75,21 +76,24 @@ void main(int argc, char** argv) {
     BP = IC;
 
     //set up output
-    printf("\t\t\t\tPC\tBP\tSP\tDP\tdata\n");
-    printf("Initial values:\t\t\t%d\t%d\t%d\t%d",PC, BP, SP, DP);
-    for (int i = GP; i <= DP; i++)  {
-        printf("%d ", pas[i]);
+    if(printFlag)
+    {
+        printf("\t\t\t\tPC\tBP\tSP\tDP\tdata\n");
+        printf("Initial values:\t\t\t%d\t%d\t%d\t%d",PC, BP, SP, DP);
+        for (int i = GP; i <= DP; i++)  {
+            printf("%d ", pas[i]);
+        }
+        printf("\n");
     }
-    printf("\n");
 
     //instruction cycle
     while(PC < IC)  {
         //fetch  cycle
 
         //load instrction from text into IR
-        IR.OP = pas[PC];
-        IR.L = pas[PC + 1];
-        IR.M = pas[PC + 2];
+        IR.opcode = pas[PC];
+        IR.l = pas[PC + 1];
+        IR.m = pas[PC + 2];
 
         //store line number to print later
         lineNo = PC / 3;
@@ -97,28 +101,28 @@ void main(int argc, char** argv) {
         PC = PC + 3;
 
         //execute cycle
-        switch(IR.OP)   {
+        switch(IR.opcode)   {
             //LIT 
             case 1:
                 strncpy(*opname, "LIT", 3);
                 if(BP == GP) {
                     DP++;
-                    pas[DP] = IR.M;
+                    pas[DP] = IR.m;
                 }
                 else    {
                     SP--;
-                    pas[SP] = IR.M;
+                    pas[SP] = IR.m;
                 }
                 break;
             //OPR
             case 2:
-                switch(IR.M)    {
+                switch(IR.m)    {
                     //RTN
                     case 0:
                         strncpy(*opname, "RTN", 3);
                         SP = BP + 1;
-                        BP = pas[SP - 2];
-                        PC = pas[SP - 3];
+                        BP = pas[SP - 3];
+                        PC = pas[SP - 4];
                         break;
                     //NEG
                     case 1:
@@ -279,16 +283,16 @@ void main(int argc, char** argv) {
                 strncpy(*opname, "LOD", 3);
                 if(BP == GP) {
                     DP++;
-                    pas[DP] = pas[GP + IR.M];
+                    pas[DP] = pas[GP + IR.m];
                 }
                 else    {
-                    if(base(IR.L) == GP) {
+                    if(base(IR.l) == GP) {
                         SP--;
-                        pas[SP] = pas[GP + IR.M];
+                        pas[SP] = pas[GP + IR.m];
                     }
                     else    {
                         SP--;
-                        pas[SP] = pas[base(IR.L) - IR.M];
+                        pas[SP] = pas[base(IR.l) - IR.m];
                     }
                 }
                 break;
@@ -296,16 +300,16 @@ void main(int argc, char** argv) {
             case 4:
                 strncpy(*opname, "STO", 3);
                 if(BP == GP)    {
-                    pas[GP + IR.M] = pas[DP];
+                    pas[GP + IR.m] = pas[DP];
                     DP--;
                 }
                 else    {
-                    if(base(IR.L) == GP)    {
-                        pas[GP + IR.M] = pas[SP];
+                    if(base(IR.l) == GP)    {
+                        pas[GP + IR.m] = pas[SP];
                         SP++;
                     }
                     else    {
-                        pas[base(IR.L) - IR.M] = pas[SP];
+                        pas[base(IR.l) - IR.m] = pas[SP];
                         SP++;
                     }
                 }
@@ -313,39 +317,40 @@ void main(int argc, char** argv) {
             //CAL
             case 5:
                 strncpy(*opname, "CAL", 3);
-                pas[SP - 1] = base(IR.L);
-                pas[SP - 2] = BP;
-                pas[SP - 3] = PC;
+                pas[SP - 1] = 0;
+                pas[SP - 2] = base(IR.l);
+                pas[SP - 3] = BP;
+                pas[SP - 4] = PC;
                 BP = SP - 1;
-                PC = IR.M;
+                PC = IR.m;
                 break;
             //INC
             case 6:
                 strncpy(*opname, "INC", 3);
                 if(BP == GP)    {
-                    DP = DP + IR.M;
+                    DP = DP + IR.m;
                 }
                 else    {
-                    SP = SP - IR.M;
+                    SP = SP - IR.m;
                 }
                 break;
             //JMP
             case 7:
                 strncpy(*opname, "JMP", 3);
-                PC = IR.M;
+                PC = IR.m;
                 break;
             //JPC
             case 8:
                 strncpy(*opname, "JPC", 3);
                 if(BP == GP)    {
                     if(pas[DP] == 0)    {
-                        PC = IR.M;
+                        PC = IR.m;
                     }
                     DP--;
                 }
                 else    {
                     if(pas[SP] == 0)    {
-                        PC = IR.M;
+                        PC = IR.m;
                     }
                     SP++;
                 }
@@ -353,7 +358,7 @@ void main(int argc, char** argv) {
             //SYS
             case 9:
                 strncpy(*opname, "SYS", 3);
-                switch(IR.M)    {
+                switch(IR.m)    {
                     case 1:
                         if(BP == GP)    {
                             printf("Top of Stack Value: %d\n", pas[DP]);
@@ -382,7 +387,9 @@ void main(int argc, char** argv) {
                 break;
         }
 
-        print_execution( lineNo, *opname, &IR, PC, BP, SP, DP, pas, GP);
+        if(printFlag)   {
+            print_execution( lineNo, *opname, &IR, PC, BP, SP, DP, pas, GP);
+        }
     }
 
     return;
