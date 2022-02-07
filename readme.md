@@ -21,8 +21,24 @@ where test.txt is a text file of the code you wish to analyze
 
 This will output a tokenized list of the operations to a text file
 
-### Code Generation
-Todo
-
 ### Full Compilation
-Todo
+**To run:**
+You must first compile with the following command
+	`gcc -g vm.o lex.o parser.c driver.c`
+
+Then run the following to compile a text file
+
+`./a.out infile.txt`
+
+Where infile is the code you want to compile
+
+The compiler supports the following flags for additional information while compiling
+
+-l - prints the lexeme list of tokens
+-s - prints the symbol table
+-a - prints assembly code
+-v - prints the VM execution trace
+
+an example of using them would be -
+
+./a.out infile.txt -a -s
